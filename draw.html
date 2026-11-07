@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>きせかえデザイン</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 12px;
+    text-align: center;
+    font-family: sans-serif;
+    background: #fff5fa;
+}
+
+h1 {
+    font-size: 24px;
+    margin: 8px 0 14px;
+}
+
+/* 色ボタン */
+.color {
+    width: 42px;
+    height: 42px;
+    margin: 4px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* 操作ボタン */
+button {
+    cursor: pointer;
+    padding: 9px 14px;
+    margin: 4px;
+    border: 1px solid #888;
+    border-radius: 10px;
+    background: white;
+    font-size: 16px;
+}
+
+/* 描画画面（高さを2200にして頭上スペースを半分に調整） */
+#drawingArea {
+    position: relative;
+    width: min(100%, 512px);
+    aspect-ratio: 1024 / 2200;
+    margin: 15px auto;
+    line-height: 0;
+    touch-action: none;
+    border: 2px dashed #ffb6c1;
+    background-color: #ffffff;
+}
+
+/* 人形（上部に7%の余白を空けて配置） */
+#dollImage {
+    position: absolute;
+    left: 25%;
+    top: 7%;
+    width: 50%;
+    height: 93.8%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* 着色キャンバス */
+#canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    mix-blend-mode: multiply;
+}
+
+/* 状態表示 */
+#status {
+    min-height: 1.5em;
+    font-size: 14px;
+    color: #555;
+}
+</style>
+</head>
+
+<body>
+
+<h1>きせかえデザイン</h1>
+
+<!-- 色選択 -->
+<div>
+<button class="color" style="background:black" onclick="setColor('black')"></button>
+<button class="color" style="background:yellow" onclick="setColor('yellow')"></button>
+<button class="color" style="background:blue" onclick="setColor('blue')"></button>
+<button class="color" style="background:red" onclick="setColor('red')"></button>
+<button class="color" style="background:green" onclick="setColor('green')"></button>
+<button class="color" style="background:purple" onclick="setColor('purple')"></button>
+<button class="color" style="background:pink" onclick="setColor('pink')"></button>
+<button class="color" style="background:orange" onclick="setColor('orange')"></button>
+</div>
+
+<br>
+
+<!-- 筆の太さ -->
+<div>
+<button onclick="setSize(10)">ほそい</button>
+<button onclick="setSize(30)">ちゅうくらい</button>
+<button onclick="setSize(60)">ふとい</button>
+<button onclick="setEraser()">けしゴム</button>
+</div>
+
+<!-- 人形と着色キャンバス -->
+<div id="drawingArea">
+    <img id="dollImage" alt="きせかえにんぎょう">
+    <canvas id="canvas" width="1024" height="2200"></canvas>
+</div>
+
+<!-- 操作 -->
+<div>
+<button onclick="clearCanvas()">ぜんぶけす</button>
+<button id="saveButton" onclick="savePNG()">できあがり</button>
+<!-- ★「へやにもどる」ときに自動保存する関数を呼び出す -->
+<button onclick="returnToRoom()">へやにもどる</button>
+</div>
+
+<p id="status" aria-live="polite">いろをぬってみよう！</p>
+
+<script>
+// 選択された人形番号を受け取る
+const params = new URLSearchParams(location.search);
+const dollNumber = params.get("doll") || "1";
+
+// 人形画像
+const dollImage = document.getElementById("dollImage");
+dollImage.src = "doll/doll" + dollNumber + ".png";
+
+// キャンバス
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const status = document.getElementById("status");
+const saveButton = document.getElementById("saveButton");
+
+let drawing = false;
+let currentColor = "red";
+let currentSize = 16;
+let erasing = false;
+let imageReady = false;
+
+// 人形の読み込み
+dollImage.onload = function() {
+    imageReady = true;
+    status.textContent = "いろをぬってみよう！";
+};
+
+dollImage.onerror = function() {
+    status.textContent = "にんぎょうがよみこめないよ。";
+};
+
+// 色を選ぶ
+function setColor(color) {
+    currentColor = color;
+    erasing = false;
+}
+
+// 筆の太さ
+function setSize(size) {
+    currentSize = size;
+}
+
+// 消しゴム
+function setEraser() {
+    erasing = true;
+}
+
+// 描画位置
+function getPosition(e) {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+        x: (e.clientX - rect.left) * canvas.width / rect.width,
+        y: (e.clientY - rect.top) * canvas.height / rect.height
+    };
+}
+
+// 描き始め
+canvas.addEventListener("pointerdown", function(e) {
+    if (!imageReady) return;
+
+    drawing = true;
+    canvas.setPointerCapture(e.pointerId);
+
+    const p = getPosition(e);
+
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = currentSize;
+
+    if (erasing) {
+        ctx.globalCompositeOperation = "destination-out";
+    } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = currentColor;
+    }
+
+    ctx.lineTo(p.x + 0.01, p.y + 0.01);
+    ctx.stroke();
+});
+
+// 描いている途中
+canvas.addEventListener("pointermove", function(e) {
+    if (!drawing) return;
+
+    const p = getPosition(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+});
+
+// 描き終わり
+canvas.addEventListener("pointerup", function() {
+    drawing = false;
+});
+
+canvas.addEventListener("pointercancel", function() {
+    drawing = false;
+});
+
+// 全消し
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    status.textContent = "きれいになったよ！";
+}
+
+// ★【安全対策を追加】現在の着せ替え状態をブラウザに保存する共通関数
+function saveCurrentState() {
+    try {
+        if (!imageReady) return;
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = 1024;
+        tempCanvas.height = 2200;
+        const tempCtx = tempCanvas.getContext("2d");
+
+        tempCtx.drawImage(dollImage, 256, 154, 512, 2064);
+        tempCtx.globalCompositeOperation = "multiply";
+        tempCtx.drawImage(canvas, 0, 0);
+
+        const dataUrl = tempCanvas.toDataURL("image/png");
+        localStorage.setItem("dressed_doll_" + dollNumber, dataUrl);
+    } catch (e) {
+        console.error("ローカル環境の制限により保存をスキップしました:", e);
+    }
+}
+
+// 部屋に戻るボタンから確実に呼ばれる関数
+function returnToRoom() {
+    saveCurrentState();
+    location.href = 'index.html'; // 必ず部屋に戻る
+}
+
+// 人形と着色を合成してPNG保存
+async function savePNG() {
+    if (!imageReady || drawing) {
+        status.textContent = "もうすこしまってね。";
+        return;
+    }
+
+    saveButton.disabled = true;
+    status.textContent = "さくせいちゅう……";
+
+    try {
+        const resultCanvas = document.createElement("canvas");
+
+        resultCanvas.width = 1024;
+        resultCanvas.height = 2200;
+
+        const resultCtx = resultCanvas.getContext("2d");
+
+        resultCtx.drawImage(
+            dollImage,
+            256,
+            154,
+            512,
+            2064
+        );
+
+        resultCtx.globalCompositeOperation = "multiply";
+        resultCtx.drawImage(canvas, 0, 0);
+
+        const blob = await new Promise((resolve, reject) => {
+            resultCanvas.toBlob(result => {
+                if (result) resolve(result);
+                else reject(new Error("PNG保存に失敗しました"));
+            }, "image/png");
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "dress-doll" + dollNumber + ".png";
+        link.click();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        saveCurrentState();
+
+        status.textContent = "できあがり！ PNGをほぞんしたよ。";
+
+    } catch(error) {
+        console.error(error);
+        status.textContent = "ほぞんできなかったよ。";
+
+    } finally {
+        saveButton.disabled = false;
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEBきせかえ</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#shop {
+    width: 1000px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+    background-image: url("background/room-background.png");
+    background-size: 100% 100%;
+    background-position: center;
+}
+
+/* 人形を並べる場所 */
+.dolls {
+    position: absolute;
+    left: 5%;
+    top: -15%;
+    width: 90%;
+    height: 65%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: end;
+    justify-items: center;
+}
+
+/* 人形画像 */
+.dolls img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+/* 着せ替えボタン */
+#drawButton {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 10;
+    padding: 10px 16px;
+    border: 2px solid white;
+    border-radius: 20px;
+    background: #e879a9;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="shop">
+    <div class="dolls" id="dolls"></div>
+    <button id="drawButton" onclick="startDressup()">
+        きせかえる
+    </button>
+</div>
+
+<script>
+let selectedDoll = 1;
+
+// 人形5体を読み込む
+for (let i = 1; i <= 5; i++) {
+    const doll = document.createElement("img");
+    doll.alt = "にんぎょう" + i;
+
+    // ★LocalStorageに保存された着せ替え画像があればそれを優先して表示する
+    const savedDress = localStorage.getItem("dressed_doll_" + i);
+    if (savedDress) {
+        doll.src = savedDress;
+    } else {
+        doll.src = "doll/doll" + i + ".png";
+    }
+
+    doll.onclick = function() {
+        selectedDoll = i;
+        startDressup();
+    };
+
+    doll.onerror = function() {
+        console.error("画像が見つかりません:", doll.src);
+    };
+
+    document.getElementById("dolls").appendChild(doll);
+}
+
+function startDressup() {
+    location.href = "draw.html?doll=" + selectedDoll;
+}
+</script>
+
+</body>
+</html>
