@@ -110,8 +110,8 @@ let selectedDoll = 1;
 async function loadDolls() {
 
     // Supabaseから最新5枚の服を読み込む
-    const { data: clothes, error } = await supabase
-        .from("dress")
+const { data: clothes, error } = await db
+    .from("dress")
         .select("slot, image_path")
         .order("slot");
 
