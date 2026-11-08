@@ -237,22 +237,25 @@ function clearCanvas() {
     status.textContent = "きれいになったよ！";
 }
 
-// 現在の着せ替え状態をブラウザに保存する共通関数
+// 現在の着せ替え状態をブラウザに保存する共通関数（ここを savePNG と同じにします）
 function saveCurrentState() {
     try {
         if (!imageReady) return;
         const tempCanvas = document.createElement("canvas");
         
-        // ★元の素体と同じ高さ「2064」に合わせる
         tempCanvas.width = 1024;
-        tempCanvas.height = 2064;
+        tempCanvas.height = 2064; // 高さを合わせる
         const tempCtx = tempCanvas.getContext("2d");
 
-        // ★人形を元の正しい位置・サイズで描き込む
-        tempCtx.drawImage(dollImage, 256, 0, 512, 2064);
+        tempCtx.drawImage(
+            dollImage,
+            256,
+            100,
+            512,
+            1964
+        );
+
         tempCtx.globalCompositeOperation = "multiply";
-        
-        // ★お絵かきキャンバス（高さ2200）の絵を、きれいに高さ2064のサイズに収めて重ねる
         tempCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
 
         const dataUrl = tempCanvas.toDataURL("image/png");
