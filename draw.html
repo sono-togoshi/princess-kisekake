@@ -56,7 +56,7 @@ button {
     background-color: #ffffff;
 }
 
-/* 人形（上部に7%の余白を空けて配置） */
+/* 人形（目安としての表示） */
 #dollImage {
     position: absolute;
     left: 25%;
@@ -122,8 +122,6 @@ button {
 <!-- 操作 -->
 <div>
 <button onclick="clearCanvas()">ぜんぶけす</button>
-
-<!-- ★「へやにもどる」ときに自動保存する関数を呼び出す -->
 <button onclick="returnToRoom()">へやにもどる</button>
 </div>
 
@@ -143,7 +141,6 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 const status = document.getElementById("status");
-const saveButton = document.getElementById("saveButton");
 
 let drawing = false;
 let currentColor = "red";
@@ -237,92 +234,23 @@ function clearCanvas() {
     status.textContent = "きれいになったよ！";
 }
 
-// 現在の着せ替え状態をブラウザに保存する共通関数
+// ★ここがポイント：マネキンは含めず、描いた服（キャンバス）だけを保存する！
 function saveCurrentState() {
     try {
         if (!imageReady) return;
-        const tempCanvas = document.createElement("canvas");
         
-        // 右の4人と全く同じ「1024 × 2064」の比率にする
-        tempCanvas.width = 1024;
-        tempCanvas.height = 2064;
-        const tempCtx = tempCanvas.getContext("2d");
-
-        // 素体画像を歪みなくきれいに配置
-        tempCtx.drawImage(dollImage, 0, 0, 1024, 2064);
-        tempCtx.globalCompositeOperation = "multiply";
-        
-        // お絵かきした内容を、縦横比が潰れないようにピッタリ合わせる
-        tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1024, 2064);
-
-        const dataUrl = tempCanvas.toDataURL("image/png");
-        localStorage.setItem("dressed_doll_" + dollNumber, dataUrl);
+        // 保存用のキーを分けて「服だけ」を保存
+        const dataUrl = canvas.toDataURL("image/png");
+        localStorage.setItem("dressed_clothes_" + dollNumber, dataUrl);
     } catch (e) {
-        console.error("ローカル環境の制限により保存をスキップしました:", e);
+        console.error("保存に失敗しました:", e);
     }
 }
+
 // 部屋に戻るボタンから確実に呼ばれる関数
 function returnToRoom() {
     saveCurrentState();
     location.href = 'index.html'; // 必ず部屋に戻る
-}
-
-// 人形と着色を合成してPNG保存
-async function savePNG() {
-    if (!imageReady || drawing) {
-        status.textContent = "もうすこしまってね。";
-        return;
-    }
-
-    saveButton.disabled = true;
-    status.textContent = "さくせいちゅう……";
-
-    try {
-        const resultCanvas = document.createElement("canvas");
-
-        resultCanvas.width = 1024;
-        resultCanvas.height = 2064; // 高さを合わせる
-
-        const resultCtx = resultCanvas.getContext("2d");
-
-        resultCtx.drawImage(
-            dollImage,
-            256,
-            100,
-            512,
-            1964
-        );
-
-        resultCtx.globalCompositeOperation = "multiply";
-        resultCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
-
-        const blob = await new Promise((resolve, reject) => {
-            resultCanvas.toBlob(result => {
-                if (result) resolve(result);
-                else reject(new Error("PNG保存に失敗しました"));
-            }, "image/png");
-        });
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-
-        link.href = url;
-        link.download = "dress-doll" + dollNumber + ".png";
-        link.click();
-
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-        saveCurrentState();
-
-        status.textContent = "できあがり！ PNGをほぞんしたよ。";
-
-    } catch(error) {
-        console.error(error);
-        status.textContent = "ほぞんできなかったよ。";
-
-    } finally {
-        saveButton.disabled = false;
-    }
 }
 </script>
 </body>
