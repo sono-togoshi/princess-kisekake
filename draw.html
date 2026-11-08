@@ -243,22 +243,16 @@ function saveCurrentState() {
         if (!imageReady) return;
         const tempCanvas = document.createElement("canvas");
         
-// 保存時の高さを元と同じ 2064 に統一する例
-tempCanvas.width = 1024;
-tempCanvas.height = 2064;
-const tempCtx = tempCanvas.getContext("2d");
+        // ★元の素体と同じ高さ「2064」に合わせる
+        tempCanvas.width = 1024;
+        tempCanvas.height = 2064;
+        const tempCtx = tempCanvas.getContext("2d");
 
-// 元の素体の位置（y: 0付近）で綺麗に収める
-tempCtx.drawImage(dollImage, 0, 0, 1024, 2064);
-tempCtx.globalCompositeOperation = "multiply";
-// もしお絵かき画面が2200なら、高さを合わせて重ねる
-tempCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
-
-        // 人形をキレイな位置に描画
-        tempCtx.drawImage(dollImage, 256, 100, 512, 1964);
+        // ★人形を元の正しい位置・サイズで描き込む
+        tempCtx.drawImage(dollImage, 256, 0, 512, 2064);
         tempCtx.globalCompositeOperation = "multiply";
         
-        // 描画キャンバス（高さ2200）の上部スペースを考慮してギュッと縮小・調整して重ねる
+        // ★お絵かきキャンバス（高さ2200）の絵を、きれいに高さ2064のサイズに収めて重ねる
         tempCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
 
         const dataUrl = tempCanvas.toDataURL("image/png");
