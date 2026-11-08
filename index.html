@@ -42,6 +42,13 @@ body {
     justify-items: center;
 }
 
+/* 各人形の個別の高さを微調整する設定 */
+.doll-container.doll-1 { transform: translateY(0px); }
+.doll-container.doll-2 { transform: translateY(15px); } /* 2番目を少し下げる */
+.doll-container.doll-3 { transform: translateY(15px); } /* 3番目を少し下げる */
+.doll-container.doll-4 { transform: translateY(25px); } /* 4番目を下げる */
+.doll-container.doll-5 { transform: translateY(25px); } /* 5番目を下げる */
+
 /* ★1体分のコンテナ（素体と服を重ねるための枠） */
 .doll-container {
     position: relative;
@@ -96,6 +103,10 @@ for (let i = 1; i <= 5; i++) {
     // ★重ね合わせ用のコンテナを作成
     const container = document.createElement("div");
     container.className = "doll-container";
+
+// 人形5体を読み込むループ内
+const container = document.createElement("div");
+container.className = "doll-container doll-" + i; // ★「doll-1」〜「doll-5」のクラスが付くようにする
 
     // 1. 下層：ベースの素体画像
     const baseDoll = document.createElement("img");
