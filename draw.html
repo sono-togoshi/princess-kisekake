@@ -237,25 +237,22 @@ function clearCanvas() {
     status.textContent = "きれいになったよ！";
 }
 
-// 現在の着せ替え状態をブラウザに保存する共通関数（ここを savePNG と同じにします）
+// 現在の着せ替え状態をブラウザに保存する共通関数
 function saveCurrentState() {
     try {
         if (!imageReady) return;
         const tempCanvas = document.createElement("canvas");
         
+        // ★他の素体と同じ「1024 × 2064」のキャンバスを作る
         tempCanvas.width = 1024;
-        tempCanvas.height = 2064; // 高さを合わせる
+        tempCanvas.height = 2064;
         const tempCtx = tempCanvas.getContext("2d");
 
-        tempCtx.drawImage(
-            dollImage,
-            256,
-            100,
-            512,
-            1964
-        );
-
+        // ★素体画像を縮小せず、キャンバス全体にピタッと描画する
+        tempCtx.drawImage(dollImage, 0, 0, 1024, 2064);
         tempCtx.globalCompositeOperation = "multiply";
+        
+        // ★お絵かきした内容（canvas）を、位置を合わせてキレイに重ねる
         tempCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
 
         const dataUrl = tempCanvas.toDataURL("image/png");
@@ -264,7 +261,6 @@ function saveCurrentState() {
         console.error("ローカル環境の制限により保存をスキップしました:", e);
     }
 }
-
 // 部屋に戻るボタンから確実に呼ばれる関数
 function returnToRoom() {
     saveCurrentState();
