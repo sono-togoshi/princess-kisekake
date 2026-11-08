@@ -99,51 +99,70 @@ body {
 </div>
 
 <script>
+const SUPABASE_URL = 'https://yapohmzbgojtaygfceel.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_LzzA7XlGG4Q6qGQDpf8_mA_FZepVODX';
+
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 let selectedDoll = 1;
 
-// 人形5体を読み込む
-for (let i = 1; i <= 5; i++) {
-    // 重ね合わせ用のコンテナを作成し、個別クラス（doll-1〜5）を付与
-    const container = document.createElement("div");
-    container.className = "doll-container doll-" + i;
+async function loadDolls() {
 
-    // 1. 下層：ベースの素体画像
-    const baseDoll = document.createElement("img");
-    baseDoll.alt = "にんぎょう素体" + i;
-    baseDoll.src = "doll/doll" + i + ".png";
+    // Supabaseから最新5枚の服を読み込む
+    const { data: clothes, error } = await supabase
+        .from("dress")
+        .select("slot, image_path")
+        .order("slot");
 
-    // 2. 上層：保存された服のレイヤー画像
-    const clothesLayer = document.createElement("img");
-    clothesLayer.alt = "ふく" + i;
-    
-    const savedClothes = localStorage.getItem("dressed_clothes_" + i);
-    if (savedClothes) {
-        clothesLayer.src = savedClothes;
-    } else {
-        // 服がまだない場合は非表示にする
-        clothesLayer.style.display = "none";
+    if (error) {
+        console.error("服の読み込みに失敗:", error);
     }
 
-    // コンテナに素体と服を重ねて追加
-    container.appendChild(baseDoll);
-    container.appendChild(clothesLayer);
+    // 人形5体を表示
+    for (let i = 1; i <= 5; i++) {
 
-    // クリックしたらその人形を選んでお絵かき画面へ
-    container.onclick = function() {
-        selectedDoll = i;
-        startDressup();
-    };
+        const container = document.createElement("div");
+        container.className = "doll-container doll-" + i;
 
-    baseDoll.onerror = function() {
-        console.error("素体画像が見つかりません:", baseDoll.src);
-    };
+        // 素体
+        const baseDoll = document.createElement("img");
+        baseDoll.alt = "にんぎょうそたい" + i;
+        baseDoll.src = "doll/doll" + i + ".png";
 
-    document.getElementById("dolls").appendChild(container);
+        // 服
+        const clothesLayer = document.createElement("img");
+        clothesLayer.alt = "ふく" + i;
+
+        const savedClothes = clothes?.find(item => item.slot === i);
+
+        if (savedClothes) {
+            clothesLayer.src = savedClothes.image_path;
+        } else {
+            clothesLayer.style.display = "none";
+        }
+
+        container.appendChild(baseDoll);
+        container.appendChild(clothesLayer);
+
+        container.onclick = function() {
+            selectedDoll = i;
+            startDressup();
+        };
+
+        baseDoll.onerror = function() {
+            console.error("素体画像が見つかりません:", baseDoll.src);
+        };
+
+        document.getElementById("dolls").appendChild(container);
+    }
 }
 
 function startDressup() {
     location.href = "draw.html?doll=" + selectedDoll;
 }
+
+loadDolls();
 </script>
 
 </body>
