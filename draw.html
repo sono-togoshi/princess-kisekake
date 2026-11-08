@@ -237,18 +237,23 @@ function clearCanvas() {
     status.textContent = "きれいになったよ！";
 }
 
-// ★【安全対策を追加】現在の着せ替え状態をブラウザに保存する共通関数
+// 現在の着せ替え状態をブラウザに保存する共通関数
 function saveCurrentState() {
     try {
         if (!imageReady) return;
         const tempCanvas = document.createElement("canvas");
+        
+        // ★保存する画像のサイズを元の素体に近い比率（例：高さ2064）に調整してスッキリさせる
         tempCanvas.width = 1024;
-        tempCanvas.height = 2200;
+        tempCanvas.height = 2064;
         const tempCtx = tempCanvas.getContext("2d");
 
-        tempCtx.drawImage(dollImage, 256, 154, 512, 2064);
+        // 人形をキレイな位置に描画
+        tempCtx.drawImage(dollImage, 256, 100, 512, 1964);
         tempCtx.globalCompositeOperation = "multiply";
-        tempCtx.drawImage(canvas, 0, 0);
+        
+        // 描画キャンバス（高さ2200）の上部スペースを考慮してギュッと縮小・調整して重ねる
+        tempCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
 
         const dataUrl = tempCanvas.toDataURL("image/png");
         localStorage.setItem("dressed_doll_" + dollNumber, dataUrl);
@@ -277,20 +282,20 @@ async function savePNG() {
         const resultCanvas = document.createElement("canvas");
 
         resultCanvas.width = 1024;
-        resultCanvas.height = 2200;
+        resultCanvas.height = 2064; // 高さを合わせる
 
         const resultCtx = resultCanvas.getContext("2d");
 
         resultCtx.drawImage(
             dollImage,
             256,
-            154,
+            100,
             512,
-            2064
+            1964
         );
 
         resultCtx.globalCompositeOperation = "multiply";
-        resultCtx.drawImage(canvas, 0, 0);
+        resultCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
 
         const blob = await new Promise((resolve, reject) => {
             resultCanvas.toBlob(result => {
