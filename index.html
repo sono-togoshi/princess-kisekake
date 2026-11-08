@@ -33,23 +33,23 @@ body {
 .dolls {
     position: absolute;
     left: 5%;
-    top: 25%;   /* ★ここを少し下げて床に合わせる */
+    top: 25%;   
     width: 90%;
     height: 65%;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    align-items: end; /* グリッドの下部にピタッと合わせる */
+    align-items: end; 
     justify-items: center;
 }
 
 /* 各人形の個別の高さを微調整する設定 */
 .doll-container.doll-1 { transform: translateY(0px); }
-.doll-container.doll-2 { transform: translateY(15px); } /* 2番目を少し下げる */
-.doll-container.doll-3 { transform: translateY(15px); } /* 3番目を少し下げる */
-.doll-container.doll-4 { transform: translateY(25px); } /* 4番目を下げる */
-.doll-container.doll-5 { transform: translateY(25px); } /* 5番目を下げる */
+.doll-container.doll-2 { transform: translateY(15px); } 
+.doll-container.doll-3 { transform: translateY(15px); } 
+.doll-container.doll-4 { transform: translateY(25px); } 
+.doll-container.doll-5 { transform: translateY(25px); } 
 
-/* ★1体分のコンテナ（素体と服を重ねるための枠） */
+/* 1体分のコンテナ（素体と服を重ねるための枠） */
 .doll-container {
     position: relative;
     width: 80%;
@@ -100,13 +100,9 @@ let selectedDoll = 1;
 
 // 人形5体を読み込む
 for (let i = 1; i <= 5; i++) {
-    // ★重ね合わせ用のコンテナを作成
+    // 重ね合わせ用のコンテナを作成し、個別クラス（doll-1〜5）を付与
     const container = document.createElement("div");
-    container.className = "doll-container";
-
-// 人形5体を読み込むループ内
-const container = document.createElement("div");
-container.className = "doll-container doll-" + i; // ★「doll-1」〜「doll-5」のクラスが付くようにする
+    container.className = "doll-container doll-" + i;
 
     // 1. 下層：ベースの素体画像
     const baseDoll = document.createElement("img");
@@ -121,7 +117,7 @@ container.className = "doll-container doll-" + i; // ★「doll-1」〜「doll-5
     if (savedClothes) {
         clothesLayer.src = savedClothes;
     } else {
-        // 服がまだない場合は透明な画像（または何も表示しない）
+        // 服がまだない場合は非表示にする
         clothesLayer.style.display = "none";
     }
 
