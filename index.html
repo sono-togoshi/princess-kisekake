@@ -42,12 +42,23 @@ body {
     justify-items: center;
 }
 
-/* 人形画像 */
-.dolls img {
+/* ★1体分のコンテナ（素体と服を重ねるための枠） */
+.doll-container {
+    position: relative;
     width: 80%;
     height: 80%;
-    object-fit: contain;
     cursor: pointer;
+}
+
+/* 素体画像と服画像の共通スタイル（完全に重ね合わせる） */
+.doll-container img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
 }
 
 /* 着せ替えボタン */
@@ -82,27 +93,42 @@ let selectedDoll = 1;
 
 // 人形5体を読み込む
 for (let i = 1; i <= 5; i++) {
-    const doll = document.createElement("img");
-    doll.alt = "にんぎょう" + i;
+    // ★重ね合わせ用のコンテナを作成
+    const container = document.createElement("div");
+    container.className = "doll-container";
 
-    // ★LocalStorageに保存された着せ替え画像があればそれを優先して表示する
-    const savedDress = localStorage.getItem("dressed_doll_" + i);
-    if (savedDress) {
-        doll.src = savedDress;
+    // 1. 下層：ベースの素体画像
+    const baseDoll = document.createElement("img");
+    baseDoll.alt = "にんぎょう素体" + i;
+    baseDoll.src = "doll/doll" + i + ".png";
+
+    // 2. 上層：保存された服のレイヤー画像
+    const clothesLayer = document.createElement("img");
+    clothesLayer.alt = "ふく" + i;
+    
+    const savedClothes = localStorage.getItem("dressed_clothes_" + i);
+    if (savedClothes) {
+        clothesLayer.src = savedClothes;
     } else {
-        doll.src = "doll/doll" + i + ".png";
+        // 服がまだない場合は透明な画像（または何も表示しない）
+        clothesLayer.style.display = "none";
     }
 
-    doll.onclick = function() {
+    // コンテナに素体と服を重ねて追加
+    container.appendChild(baseDoll);
+    container.appendChild(clothesLayer);
+
+    // クリックしたらその人形を選んでお絵かき画面へ
+    container.onclick = function() {
         selectedDoll = i;
         startDressup();
     };
 
-    doll.onerror = function() {
-        console.error("画像が見つかりません:", doll.src);
+    baseDoll.onerror = function() {
+        console.error("素体画像が見つかりません:", baseDoll.src);
     };
 
-    document.getElementById("dolls").appendChild(doll);
+    document.getElementById("dolls").appendChild(container);
 }
 
 function startDressup() {
