@@ -243,17 +243,17 @@ function saveCurrentState() {
         if (!imageReady) return;
         const tempCanvas = document.createElement("canvas");
         
-        // ★他の素体と同じ「1024 × 2064」のキャンバスを作る
+        // 右の4人と全く同じ「1024 × 2064」の比率にする
         tempCanvas.width = 1024;
         tempCanvas.height = 2064;
         const tempCtx = tempCanvas.getContext("2d");
 
-        // ★素体画像を縮小せず、キャンバス全体にピタッと描画する
+        // 素体画像を歪みなくきれいに配置
         tempCtx.drawImage(dollImage, 0, 0, 1024, 2064);
         tempCtx.globalCompositeOperation = "multiply";
         
-        // ★お絵かきした内容（canvas）を、位置を合わせてキレイに重ねる
-        tempCtx.drawImage(canvas, 0, 0, 1024, 2200, 0, 0, 1024, 2064);
+        // お絵かきした内容を、縦横比が潰れないようにピッタリ合わせる
+        tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1024, 2064);
 
         const dataUrl = tempCanvas.toDataURL("image/png");
         localStorage.setItem("dressed_doll_" + dollNumber, dataUrl);
