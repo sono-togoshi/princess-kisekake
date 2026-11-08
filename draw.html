@@ -245,20 +245,19 @@ function clearCanvas() {
 
 // ★ここがポイント：マネキンは含めず、描いた服（キャンバス）だけを保存する！
 // 描いた服をSupabaseに保存する
+// 描いた服をSupabaseに保存する
 async function saveCurrentState() {
     try {
         if (!imageReady) return;
 
-        // 描いた部分だけをPNGにする
         const dataUrl = canvas.toDataURL("image/png");
         const res = await fetch(dataUrl);
         const blob = await res.blob();
 
-        // 毎回異なるファイル名にする
         const fileName = `dress-${Date.now()}.png`;
 
         // Storageへアップロード
-        const { error: storageError } = await supabase.storage
+        const { error: storageError } = await db.storage
             .from("dress-images")
             .upload(fileName, blob, {
                 contentType: "image/png"
@@ -267,17 +266,16 @@ async function saveCurrentState() {
         if (storageError) throw storageError;
 
         // 公開URLを取得
-        const { data: publicUrlData } = supabase.storage
+        const { data: publicUrlData } = db.storage
             .from("dress-images")
             .getPublicUrl(fileName);
 
         const imageUrl = publicUrlData.publicUrl;
 
-        // dressテーブルへ登録（6枚目から古いものを入れ替える）
-        const { error: dbError } = await supabase
-            .rpc("add_dress", {
-                image_path: imageUrl
-            });
+        // dressテーブルへ登録
+        const { error: dbError } = await db.rpc("add_dress", {
+            image_path: imageUrl
+        });
 
         if (dbError) throw dbError;
 
@@ -290,7 +288,7 @@ async function saveCurrentState() {
     }
 }
 
-// 保存が終わってから部屋に戻る
+// 保存完了後に部屋へ戻る
 async function returnToRoom() {
     try {
         await saveCurrentState();
@@ -298,9 +296,7 @@ async function returnToRoom() {
     } catch (e) {
         alert("ほぞんにしっぱいしたよ。もういちどためしてね。");
     }
-}
-// 部屋に戻るボタンから確実に呼ばれる関数
-function returnToRoom() {
+} {
     saveCurrentState();
     location.href = 'index.html'; // 必ず部屋に戻る
 }
