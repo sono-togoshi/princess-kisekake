@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>きせかえデザイン</title>
 
+<!-- Supabase SDKの読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 * {
     box-sizing: border-box;
@@ -128,6 +131,12 @@ button {
 <p id="status" aria-live="polite">いろをぬってみよう！</p>
 
 <script>
+
+// Supabaseの初期化（URLとKeyはご自身のものに書き換えてください）
+const SUPABASE_URL = 'https://yapohmzbgojtaygfceel.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_LzzA7XlGG4Q6qGQDpf8_mA_FZepVODX';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // 選択された人形番号を受け取る
 const params = new URLSearchParams(location.search);
 const dollNumber = params.get("doll") || "1";
@@ -235,15 +244,52 @@ function clearCanvas() {
 }
 
 // ★ここがポイント：マネキンは含めず、描いた服（キャンバス）だけを保存する！
-function saveCurrentState() {
+async function saveCurrentState() {
     try {
         if (!imageReady) return;
-        
-        // 保存用のキーを分けて「服だけ」を保存
+
+        // 1. キャンバスの描画内容をDataURL（PNG形式）に変換
         const dataUrl = canvas.toDataURL("image/png");
-        localStorage.setItem("dressed_clothes_" + dollNumber, dataUrl);
+
+        // DataURLをBlob（バイナリデータ）に変換する関数
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+
+        // ファイル名を決定（例: art-slot1.png）
+        const fileName = `art-slot${dollNumber}.png`;
+
+        // 2. Supabase Storage（dress-images）へアップロード（upsert: true で上書き）
+        const { data: storageData, error: storageError } = await supabase.storage
+            .from('dress-images')
+            .upload(fileName, blob, {
+                contentType: 'image/png',
+                upsert: true
+            });
+
+        if (storageError) throw storageError;
+
+        // 3. ストレージの公開URLを取得
+        const { data: publicUrlData } = supabase.storage
+            .from('dress-images')
+            .getPublicUrl(fileName);
+
+        const imageUrl = publicUrlData.publicUrl;
+
+        // 4. cakeテーブルの slot （1〜5）に合わせて image_path を更新（上書き）
+        const { error: dbError } = await supabase
+            .from('cake')
+            .upsert({
+                slot: parseInt(dollNumber),
+                image_path: imageUrl,
+                created_at: new Date().toISOString()
+            }, { onConflict: 'slot' });
+
+        if (dbError) throw dbError;
+
+        console.log("Supabaseへの保存が完了しました！");
+
     } catch (e) {
-        console.error("保存に失敗しました:", e);
+        console.error("Supabaseへの保存に失敗しました:", e);
     }
 }
 
