@@ -135,7 +135,8 @@ button {
 // Supabaseの初期化（URLとKeyはご自身のものに書き換えてください）
 const SUPABASE_URL = 'https://yapohmzbgojtaygfceel.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LzzA7XlGG4Q6qGQDpf8_mA_FZepVODX';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 選択された人形番号を受け取る
 const params = new URLSearchParams(location.search);
