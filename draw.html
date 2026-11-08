@@ -256,12 +256,21 @@ async function saveCurrentState() {
 
         const fileName = `dress-${Date.now()}.png`;
 
-        // Storageへアップロード
-        const { error: storageError } = await db.storage
-            .from("dress-images")
-            .upload(fileName, blob, {
-                contentType: "image/png"
-            });
+// Storageへアップロード
+console.log("アップロード開始", fileName);
+console.log("Supabase接続先:", SUPABASE_URL);
+console.log("APIキー:", SUPABASE_ANON_KEY.substring(0, 15));
+
+const { data: storageData, error: storageError } = await db.storage
+    .from("dress-images")
+    .upload(fileName, blob, {
+        contentType: "image/png"
+    });
+
+console.log("アップロード結果:", storageData);
+console.log("アップロードエラー:", storageError);
+
+if (storageError) throw storageError;
 
         if (storageError) throw storageError;
 
