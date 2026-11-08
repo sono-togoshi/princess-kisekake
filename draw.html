@@ -245,55 +245,61 @@ function clearCanvas() {
 }
 
 // ★ここがポイント：マネキンは含めず、描いた服（キャンバス）だけを保存する！
+// 描いた服をSupabaseに保存する
 async function saveCurrentState() {
     try {
         if (!imageReady) return;
 
-        // 1. キャンバスの描画内容をDataURL（PNG形式）に変換
+        // 描いた部分だけをPNGにする
         const dataUrl = canvas.toDataURL("image/png");
-
-        // DataURLをBlob（バイナリデータ）に変換する関数
         const res = await fetch(dataUrl);
         const blob = await res.blob();
 
-        // ファイル名を決定（例: art-slot1.png）
-        const fileName = `art-slot${dollNumber}.png`;
+        // 毎回異なるファイル名にする
+        const fileName = `dress-${Date.now()}.png`;
 
-        // 2. Supabase Storage（dress-images）へアップロード（upsert: true で上書き）
-        const { data: storageData, error: storageError } = await supabase.storage
-            .from('dress-images')
+        // Storageへアップロード
+        const { error: storageError } = await supabase.storage
+            .from("dress-images")
             .upload(fileName, blob, {
-                contentType: 'image/png',
-                upsert: true
+                contentType: "image/png"
             });
 
         if (storageError) throw storageError;
 
-        // 3. ストレージの公開URLを取得
+        // 公開URLを取得
         const { data: publicUrlData } = supabase.storage
-            .from('dress-images')
+            .from("dress-images")
             .getPublicUrl(fileName);
 
         const imageUrl = publicUrlData.publicUrl;
 
-        // 4. cakeテーブルの slot （1〜5）に合わせて image_path を更新（上書き）
+        // dressテーブルへ登録（6枚目から古いものを入れ替える）
         const { error: dbError } = await supabase
-            .from('cake')
-            .upsert({
-                slot: parseInt(dollNumber),
-                image_path: imageUrl,
-                created_at: new Date().toISOString()
-            }, { onConflict: 'slot' });
+            .rpc("add_dress", {
+                image_path: imageUrl
+            });
 
         if (dbError) throw dbError;
 
-        console.log("Supabaseへの保存が完了しました！");
+        status.textContent = "ほぞんできたよ！";
 
     } catch (e) {
-        console.error("Supabaseへの保存に失敗しました:", e);
+        console.error("保存に失敗しました:", e);
+        status.textContent = "ほぞんできなかったよ。";
+        throw e;
     }
 }
 
+// 保存が終わってから部屋に戻る
+async function returnToRoom() {
+    try {
+        await saveCurrentState();
+        location.href = "index.html";
+    } catch (e) {
+        alert("ほぞんにしっぱいしたよ。もういちどためしてね。");
+    }
+}
 // 部屋に戻るボタンから確実に呼ばれる関数
 function returnToRoom() {
     saveCurrentState();
