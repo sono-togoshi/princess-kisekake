@@ -131,9 +131,10 @@ const { data: clothes, error } = await db
         baseDoll.src = "doll/doll" + i + ".png";
 
         // 服
-        const clothesLayer = document.createElement("img");
-        clothesLayer.alt = "ふく" + i;
-
+ const clothesLayer = document.createElement("img");
+clothesLayer.alt = "ふく" + i;
+clothesLayer.className = "clothes-layer";
+        
         const savedClothes = clothes?.find(item => item.slot === i);
 
         if (savedClothes) {
