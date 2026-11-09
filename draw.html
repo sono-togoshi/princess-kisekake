@@ -282,9 +282,10 @@ if (storageError) throw storageError;
         const imageUrl = publicUrlData.publicUrl;
 
         // dressテーブルへ登録
-        const { error: dbError } = await db.rpc("add_dress", {
-            image_path: imageUrl
-        });
+const { error: dbError } = await db.rpc("add_dress", {
+    image_path: imageUrl,
+    doll_number: Number(dollNumber)
+});
 
         if (dbError) throw dbError;
 
