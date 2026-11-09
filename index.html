@@ -52,32 +52,36 @@ body {
 .doll-container.doll-4 { transform: translateY(25px); } 
 .doll-container.doll-5 { transform: translateY(25px); } 
 
-/* 1体分のコンテナ（素体と服を重ねるための枠） */
+/* 1体分のコンテナ */
 .doll-container {
     position: relative;
     width: 80%;
-    height: 80%;
+    aspect-ratio: 1024 / 2200;
+    height: auto;
     cursor: pointer;
 }
 
-/* 素体画像と服画像の共通スタイル（完全に重ね合わせる） */
-.doll-container img {
+/* 素体画像 */
+.doll-container img:not(.clothes-layer) {
+    position: absolute;
+    left: 25%;
+    top: 7%;
+    width: 50%;
+    height: 93.8%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* 服の画像（保存したキャンバス全体） */
+.doll-container img.clothes-layer {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: fill;
     pointer-events: none;
 }
-
-.doll-container img.clothes-layer {
-    left: 25%;
-    top: 7%;
-    width: 50%;
-    height: 93.8%;
-}
-
 /* 着せ替えボタン */
 #drawButton {
     position: absolute;
