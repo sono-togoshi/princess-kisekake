@@ -144,11 +144,20 @@ clothesLayer.className = "clothes-layer";
         
         const savedClothes = clothes?.find(item => item.slot === i);
 
-        if (savedClothes) {
-            clothesLayer.src = savedClothes.image_path;
-        } else {
-            clothesLayer.style.display = "none";
-        }
+  if (savedClothes) {
+    clothesLayer.src = savedClothes.image_path;
+
+    clothesLayer.onload = function() {
+        console.log("服の画像を読み込みました:", i, clothesLayer.src);
+    };
+
+    clothesLayer.onerror = function() {
+        console.error("服の画像を読み込めません:", i, clothesLayer.src);
+    };
+} else {
+    clothesLayer.style.display = "none";
+    console.log("服の登録がありません:", i);
+}
 
         container.appendChild(baseDoll);
         container.appendChild(clothesLayer);
